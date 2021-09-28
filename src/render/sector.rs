@@ -6,6 +6,7 @@ pub struct SectorModel {
     wall_ibuffer: Vec<u16>,
     wall_material: Material,
     ib: u32,
+    vao: u32,
     view_att: i32,
     persp_att: i32,
     pos_att: i32,
@@ -29,9 +30,11 @@ impl<T: BaseNum> ToArr for Matrix4<T> {
 
 impl SectorModel {
     pub fn new(gl: &gl::Gl, ibuffer: Vec<u16>, texture: u32) -> Self {
+        println!("SectorModel::new");
         let wall_material = Material::new(gl, "./src/render/wall.vert", "./src/render/wall.frag");
 
         let mut ib = unsafe { std::mem::zeroed() };
+        let mut vao = unsafe { std::mem::zeroed() };
         let pos_att = wall_material.get_attrib_location(gl, "position\0");
         let uv_att = wall_material.get_attrib_location(gl, "uv\0");
         let light_att = wall_material.get_attrib_location(gl, "light\0");
@@ -39,9 +42,13 @@ impl SectorModel {
         let persp_att = wall_material.get_uniform_location(gl, "proj\0");
         let img_att = wall_material.get_uniform_location(gl, "image\0");
         unsafe {
+            // generate and bind the vao
+            gl.GenVertexArrays(1, &mut vao);
+            gl.BindVertexArray(vao);
+
             gl.GenBuffers(1, &mut ib);
             assert!(gl.GetError() == 0);
-            gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ib);
+            gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ib); //
             assert!(gl.GetError() == 0);
             gl.BufferData(
                 gl::ELEMENT_ARRAY_BUFFER,
@@ -49,40 +56,60 @@ impl SectorModel {
                 ibuffer.as_ptr() as *const _,
                 gl::DYNAMIC_DRAW,
             );
+
+            gl.EnableVertexAttribArray(pos_att as gl::types::GLuint);
+            assert!(gl.GetError() == 0);
+            gl.EnableVertexAttribArray(uv_att as gl::types::GLuint);
+            assert!(gl.GetError() == 0);
+            gl.EnableVertexAttribArray(light_att as gl::types::GLuint);
+            assert!(gl.GetError() == 0);
+
+            // http://docs.gl/gl4/glVertexAttribPointer
+            // https://stackoverflow.com/questions/13403807/glvertexattribpointer-raising-gl-invalid-operation
+            // https://stackoverflow.com/questions/27027602/glvertexattribpointer-gl-invalid-operation-invalid-vao-vbo-pointer-usage
             assert!(gl.GetError() == 0);
             gl.VertexAttribPointer(
                 pos_att as gl::types::GLuint,
                 3,
                 gl::FLOAT,
-                0,
+                gl::FALSE, //0 GLboolean
                 (6 * std::mem::size_of::<f32>()) as gl::types::GLsizei,
-                std::ptr::null(),
+                std::ptr::null() as *const () as *const _, //(2 * std::mem::size_of::<f32>())
             );
             assert!(gl.GetError() == 0);
             gl.VertexAttribPointer(
                 uv_att as gl::types::GLuint,
                 2,
                 gl::FLOAT,
-                0,
+                gl::FALSE,
                 (6 * std::mem::size_of::<f32>()) as gl::types::GLsizei,
                 (3 * std::mem::size_of::<f32>()) as *const () as *const _,
             );
-            assert!(gl.GetError() == 0);
+            let gl_error = gl.GetError();
+            if gl_error != 0 {
+            	println!("GLError '{}' for :", gl_error );
+            }
+            assert!(gl_error == 0);
             gl.VertexAttribPointer(
                 light_att as gl::types::GLuint,
                 1,
                 gl::FLOAT,
-                0,
+                gl::FALSE,
                 (6 * std::mem::size_of::<f32>()) as gl::types::GLsizei,
                 (5 * std::mem::size_of::<f32>()) as *const () as *const _,
             );
-            assert!(gl.GetError() == 0);
+            let gl_error = gl.GetError();
+            if gl_error != 0 {
+            	println!("GLError '{}' for :", gl_error );
+            }
+            assert!(gl_error == 0);
         }
 
         SectorModel {
             wall_ibuffer: ibuffer,
             wall_material,
             ib,
+            vao,
             view_att,
             persp_att,
             pos_att,
@@ -97,12 +124,7 @@ impl SectorModel {
         unsafe {
             self.wall_material.bind(gl);
             gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ib);
-            assert!(gl.GetError() == 0);
-            gl.EnableVertexAttribArray(self.pos_att as gl::types::GLuint);
-            assert!(gl.GetError() == 0);
-            gl.EnableVertexAttribArray(self.uv_att as gl::types::GLuint);
-            assert!(gl.GetError() == 0);
-            gl.EnableVertexAttribArray(self.light_att as gl::types::GLuint);
+            gl.BindVertexArray(self.vao);
             assert!(gl.GetError() == 0);
             gl.UniformMatrix4fv(
                 self.view_att,

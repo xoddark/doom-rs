@@ -37,8 +37,11 @@ pub fn create_shader(gl: &gl::Gl, name: &Path, shader_type: gl::types::GLenum) -
 
 impl Material {
     pub fn new(gl: &gl::Gl, vs: &str, fs: &str) -> Self {
-        let vs = create_shader(gl, Path::new(vs), gl::VERTEX_SHADER);
-        let fs = create_shader(gl, Path::new(fs), gl::FRAGMENT_SHADER);
+        let src_path = env!("CARGO_MANIFEST_DIR");
+        let vs_path = Path::new(src_path).join(vs);
+        let fs_path = Path::new(src_path).join(fs);
+        let vs = create_shader(gl, &vs_path, gl::VERTEX_SHADER);
+        let fs = create_shader(gl, &fs_path, gl::FRAGMENT_SHADER);
 
         let program = unsafe { gl.CreateProgram() };
         unsafe {

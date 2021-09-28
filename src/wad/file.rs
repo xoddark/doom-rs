@@ -1,6 +1,8 @@
 use std::io::{self, BufReader, Read, Seek, SeekFrom};
 use std::mem;
-use std::{fs::File, path::Path};
+use std::env;
+use std::{fs::File, path::Path,path::PathBuf};
+use std::string::String;
 
 use super::directory::WadDirectory;
 
@@ -11,6 +13,32 @@ pub struct WadFile {
 }
 
 impl WadFile {
+    pub fn search_path(file_name: &str) -> Result<PathBuf, String> {
+        let path = PathBuf::from(file_name);
+        if path.is_file() {
+            return Ok(path);
+        }
+        // test alternative path
+        let current_dir = env::current_dir();
+        let mut path = match current_dir {
+            Ok(path) => path,
+            Err(err) => {
+                let msg = format!("Can't access to current_dir : {}", err);
+                return Err(msg);
+            }
+        };
+        // from builder, the current directory is user home folder
+        path.push("Documents");
+        path.push("jeux");
+        path.push(file_name);
+        if path.is_file() {
+            return Ok(path);
+        } else {
+            let message = format!("No file {} found", file_name);
+            return Err(message);
+        }
+    }
+
     pub fn new(file_name: &Path) -> Result<Self, String> {
         let mut file = match File::open(file_name) {
             Ok(file) => file,

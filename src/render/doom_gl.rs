@@ -14,6 +14,55 @@ pub struct GVertex {
     pub light: f32,
 }
 
+//typedef void (APIENTRY *DEBUGPROC)(GLenum source,
+//            GLenum type,
+//            GLuint id,
+//            GLenum severity,
+//            GLsizei length,
+//            const GLchar *message,
+//            const void *userParam);
+// void glDebugMessageCallback( DEBUGPROC callback, void * userParam);
+struct VoidObject {
+    a: i32,
+}
+//type GLDEBUGPROC = extern "system" fn(source: GLenum, gltype: GLenum, id: GLuint, severity: GLenum, length: GLsizei, message: *const GLchar, userParam: *mut c_void);
+extern "system" fn gl_debug_message_callback(
+		_source: gl::types::GLenum,
+		msg_type: gl::types::GLenum,
+		_id: gl::types::GLuint,
+		severity: gl::types::GLenum,
+		_length: gl::types::GLsizei,
+		message: *const gl::types::GLchar,
+		_user_param: *mut std::ffi::c_void) {
+
+        // https://www.khronos.org/opengl/wiki/Debug_Output
+        let msg_type = match msg_type {
+            GL_DEBUG_TYPE_ERROR => { "Error" }
+            GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR => {"Deprecated Behavior"}
+            GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR => { "Undefined Behavior" }
+            GL_DEBUG_TYPE_PORTABILITY => { "Portability" }
+            GL_DEBUG_TYPE_PERFORMANCE => { "Performance" }
+            GL_DEBUG_TYPE_MARKER => { "Marker" }
+            GL_DEBUG_TYPE_PUSH_GROUP => { "push group" }
+            GL_DEBUG_TYPE_POP_GROUP => { "pop group" }
+            GL_DEBUG_TYPE_OTHER => { "other" }
+            _ => { "<type not known>" }
+        };
+
+        // severity :
+        let msg_dev = match severity {
+            GL_DEBUG_SEVERITY_HIGH => { "High" }
+            GL_DEBUG_SEVERITY_MEDIUM => { "Medium" }
+            GL_DEBUG_SEVERITY_LOW => { "Low" }
+            GL_DEBUG_SEVERITY_NOTIFICATION => { "Notification" }
+            _ => {"<sev not known"}
+        };
+
+
+		let message = unsafe { std::ffi::CStr::from_ptr(message) };
+		println!("GLerror : type {} / sev {} / {:?}", msg_type, msg_dev, message);
+    }
+
 pub struct DoomGl {
     pub gl: gl::Gl,
 }
@@ -31,6 +80,7 @@ impl DoomGl {
             //gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
             //gl.gl.Disable(gl::CULL_FACE);
             //gl.gl.PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+            gl.DebugMessageCallback(Some(gl_debug_message_callback), std::ptr::null() );// use ptr to an object for
         }
 
         DoomGl { gl }
