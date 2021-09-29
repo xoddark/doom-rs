@@ -29,7 +29,7 @@ impl<T: BaseNum> ToArr for Matrix4<T> {
 
 impl SectorModel {
     pub fn new(gl: &gl::Gl, ibuffer: Vec<u16>, texture: u32) -> Self {
-        let wall_material = Material::new(gl, "./src/render/wall.vert", "./src/render/wall.frag");
+        let wall_material = Material::new(gl); // , "./src/render/wall.vert", "./src/render/wall.frag"
 
         let mut ib = unsafe { std::mem::zeroed() };
         let pos_att = wall_material.get_attrib_location(gl, "position\0");
