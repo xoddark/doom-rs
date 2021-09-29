@@ -63,7 +63,7 @@ impl SectorModel {
                 pos_att as gl::types::GLuint,
                 3,
                 gl::FLOAT,
-                0,
+                gl::FALSE,
                 (6 * std::mem::size_of::<f32>()) as gl::types::GLsizei,
                 std::ptr::null(),
             );
@@ -72,7 +72,7 @@ impl SectorModel {
                 uv_att as gl::types::GLuint,
                 2,
                 gl::FLOAT,
-                0,
+                gl::FALSE,
                 (6 * std::mem::size_of::<f32>()) as gl::types::GLsizei,
                 (3 * std::mem::size_of::<f32>()) as *const () as *const _,
             );
@@ -81,7 +81,7 @@ impl SectorModel {
                 light_att as gl::types::GLuint,
                 1,
                 gl::FLOAT,
-                0,
+                gl::FALSE,
                 (6 * std::mem::size_of::<f32>()) as gl::types::GLsizei,
                 (5 * std::mem::size_of::<f32>()) as *const () as *const _,
             );
