@@ -8,9 +8,6 @@ pub struct Material {
     program: u32,
 }
 
-const WALL_FRAG_STR: &str = include_str!("wall.frag");
-const WALL_VERT_STR: &str = include_str!("wall.vert");
-
 pub fn create_shader(gl: &gl::Gl, content: &str, shader_type: gl::types::GLenum) -> u32 {
     let length = content.len() as i32;
 
@@ -35,9 +32,9 @@ pub fn create_shader(gl: &gl::Gl, content: &str, shader_type: gl::types::GLenum)
 }
 
 impl Material {
-    pub fn new(gl: &gl::Gl) -> Self { // , vs: &str, fs: &str
-        let vs = create_shader(gl, WALL_VERT_STR, gl::VERTEX_SHADER); //Path::new(vs)
-        let fs = create_shader(gl, WALL_FRAG_STR, gl::FRAGMENT_SHADER); // Path::new(fs)
+    pub fn new(gl: &gl::Gl, vs: &str, fs: &str) -> Self {
+        let vs = create_shader(gl, vs, gl::VERTEX_SHADER);
+        let fs = create_shader(gl, fs, gl::FRAGMENT_SHADER);
 
         let program = unsafe { gl.CreateProgram() };
         unsafe {
