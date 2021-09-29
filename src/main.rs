@@ -24,6 +24,10 @@ const WAD_DEFAULT_FILENAME: &str = "base/DOOM.WAD"; //TODO: manage DOOM.WAD with
 fn main() {
     let el = EventLoop::new();
     let size = Size::Physical(PhysicalSize::new(1680, 1050));
+    // list monitor :
+    for (num, monitor) in el.available_monitors().enumerate() {
+        println!("Monitor #{}: {:?} ({:?})", num, monitor.name(), monitor.size());
+    }
     let wb = WindowBuilder::new()
         .with_inner_size(size)
         .with_resizable(false)
